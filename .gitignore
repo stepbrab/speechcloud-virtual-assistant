@@ -1,0 +1,15 @@
+/.cache
+/.dotnet
+/.local
+/.ssh
+/.vscode
+/.vscode-server
+/SpeechCloud/__pycache__
+/SpeechCloud/site
+.bash_history
+.bash_logout
+.bashrc
+.profile
+.wget-hsts
+data.json
+README.md

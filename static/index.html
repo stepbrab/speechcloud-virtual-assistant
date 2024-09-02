@@ -1,0 +1,1917 @@
+<!DOCTYPE html>
+<html>
+  <head>
+      <meta charset="UTF-8">
+
+      <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet"> 
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+  </head>
+  <body>
+
+    <!-- <button id="dialog_restart">HERE IS THE BIG BUTTON</button>
+    <button id="dialog_stop">asdahjdasbdg</button>
+    <p>
+    <button id="recog">Recognizer start/stop</button>
+    <button id="asr_set_grammar">ASR set grammar</button>
+    <button id="slu_set_nbest_2">n-best 2</button>
+    <button id="slu_set_nbest_10">n-best 10</button>
+    <button id="asr_test" onclick="prdel()">ASR test</button>
+    <button id="slu_test">SLU test</button>
+    <button id="grm_test">GRM test</button>
+    <p>
+    <input type="text" id="process_text_input">
+    <button id="process_text">Process text</button>
+    <button id="tts_text">Synthesize text</button>
+    <button id="tts_stop">Stop TTS</button>
+    <p>
+    <input type="text" id="send_message_input">
+    <button id="send_message">Send message</button>
+    <p>
+    Recognize file: <input type="file" id="file-input" />
+
+    <div id="log"></div>
+
+    <div id="doc" style="width: 40%; min-width: 40%; height: 100%; position: absolute; top: 0px; right: 0px"></div> -->
+
+
+    <audio id="audioout"></audio>
+
+    <script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
+    <script src="https://prod.speechcloud.kky.zcu.cz:9444/speechcloud.js"></script>
+
+
+    <div id="page-wrapper">
+        
+        <div id="header-container">
+            <div id="button-container">
+                <div id="button-only-container">
+                    <button class="dialog-control" id="dialog-restart">
+                        <span class="material-symbols-outlined">
+                            <!-- refresh -->
+                            play_arrow
+                        </span>
+                    </button>
+                    <!-- <button class="dialog-control" id="dialog-pause">
+                        <span class="material-symbols-outlined">
+                            mic_off
+                        </span>
+                    </button> -->
+                    <button class="dialog-control" id="dialog-stop">
+                        <span class="material-symbols-outlined">
+                            stop
+                        </span>
+                    </button>
+                </div>
+                <div id="state-icon"></div>
+            </div>
+            <div id="upcoming-event-container">
+                <h2>Nadcházející událost</h2>
+                <div id="upcoming-event-details"></div>
+            </div>
+            <div id="time">
+            </div>
+        </div>
+
+        <div id="chat-container">
+            <div id="chat-messages"></div>
+            <div id="chat-input">
+              <input type="text" id="chat-text-input" placeholder="Napište zprávu...">
+              <button id="chat-send-button">
+                <span class="material-symbols-outlined">send</span>
+              </button>
+            </div>
+        </div>
+
+        <div id="container">
+            <div id="shopping-list-container">
+                <div id="shopping-list-header">
+                    <h2>Nákupní seznam</h2>
+                    <div class="shopping-list-actions">
+                        <button id="add-item" class="action-button">
+                            <span class="material-symbols-outlined">add</span>
+                        </button>
+                        <button id="delete-item" class="action-button">
+                            <span class="material-symbols-outlined">remove</span>
+                        </button>
+                    </div>
+                </div>
+                <ul></ul>
+            </div>
+            <div id="calendar-container">
+                <div id="calendar-header">
+                    <div class="calendar-controls">
+                        <button class="prev">
+                            <span class="material-symbols-outlined">arrow_back_ios</span>
+                        </button>
+                        <button class="next" id="next-button">
+                            <span class="material-symbols-outlined">arrow_forward_ios</span>
+                        </button>
+                    </div>
+                    <h2 id="current-week"></h2>
+                    <div class="calendar-actions">
+                        <button id="add-event" class="action-button">
+                            <span class="material-symbols-outlined">add</span>
+                        </button>
+                        <button id="delete-event" class="action-button">
+                            <span class="material-symbols-outlined">remove</span>
+                        </button>
+                    </div>
+                </div>
+                <div id="calendar"></div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* Theme color switch */
+        :root {
+            --theme-color: #3f51b5;
+        }
+        /* Base styles */
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        #page-wrapper {
+            max-width: 1200px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            box-sizing: border-box;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto; 
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        /* Chat container styles */
+        
+        #chat-container {
+            width: calc(100% - 10px);
+            max-width: 1200px;
+            height: 300px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 30px;
+            margin-left: 10px;
+            margin-top: 10px;
+        }
+
+        #chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        #chat-input {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid #e0e0e0;
+            position: relative;
+            z-index: 5;
+        }
+
+        #chat-text-input {
+            flex-grow: 1;
+            border: none;
+            padding: 8px;
+            font-size: 14px;
+        }
+
+        #chat-send-button {
+            background-color: var(--theme-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            margin-right: 5px;
+            padding: 0;
+        }
+
+        #chat-send-button .material-symbols-outlined {
+            font-size: 24px;
+        }
+
+        #chat-input button:hover {
+            background-color: var(--theme-color);
+            opacity: 0.5;
+            cursor: pointer;
+        }
+
+        .chat-message {
+            max-width: 70%;
+            word-wrap: break-word;
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            border-radius: 18px;
+            clear: both;
+        }
+
+        .chat-message.incoming {
+            align-self: flex-end;
+            background-color: #f1f0f0;
+        }
+
+        .chat-message.outgoing {
+            align-self: flex-start;
+            background-color: var(--theme-color);
+            color: white;
+        }
+
+        /* Header and container styles */
+        #header-container,
+        #container {
+            width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            max-width: 1200px;
+            box-sizing: border-box;
+        }
+
+        /* Common styles for containers */
+        #time,
+        #button-container,
+        #upcoming-event-container,
+        #calendar-container,
+        #shopping-list-container {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+            margin: 10px;
+            overflow: hidden;
+            transition: flex 0.3s ease-in-out;
+        }
+
+        /* Button container styles */
+        #button-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 15px;
+            background-color: var(--theme-color);
+            color: #fff;
+            flex: 0 0 200px;
+            min-height: 190px;
+        }
+
+        #button-only-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Button styles */
+        #button-container button,
+        #calendar-header button,
+        .action-button {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 40px;
+            height: 40px;
+            background-color: transparent;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+            border-radius: 50%;
+        }
+
+        #shopping-list-header .action-button,
+        #calendar-header .action-button {
+            z-index: 11;
+            position: relative;
+        }
+
+        #button-container button {
+            width: 60px;
+            height: 60px;
+        }
+
+        #button-container button .material-symbols-outlined {
+            font-size: 60px;
+        }
+
+        #button-container button:hover,
+        #calendar-header button:hover,
+        .action-button:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Active button state */
+        .action-button.active,
+        #button-container button.active,
+        #calendar-header button.active {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Time display */
+        #time {
+            flex: auto;
+            font-size: 100px;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 0px;
+            background-color: var(--theme-color);
+            color: #ffffff;
+        }
+
+        /* Upcoming event container */
+        #upcoming-event-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: stretch;
+            padding: 0;
+            flex: 0 0 300px;
+        }
+
+        #upcoming-event-container h2 {
+            background-color: var(--theme-color);
+            color: #fff;
+            margin: 0;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        #upcoming-event-details {
+            font-size: 16px;
+            line-height: 1.5;
+            text-align: left;
+            padding: 15px;
+            flex-grow: 1;
+        }
+
+        /* Calendar and shopping list button styles */
+        #shopping-list-header .shopping-list-actions,
+        #calendar-header .calendar-actions {
+            display: flex;
+            z-index: 10;
+            position: relative;
+        }
+
+        #shopping-list-header .shopping-list-actions,
+        #calendar-header .calendar-actions,
+        #calendar-header .calendar-controls,
+        #calendar-header .calendar-actions .material-symbols-outlined,
+        #shopping-list-header .shopping-list-actions .material-symbols-outlined {
+            display: flex !important; /* Chrome overwrites it with user agent stylesheet to display: block; */
+            font-size: 30px;
+        }
+
+        /* Calendar styles */
+        #calendar-container {
+            flex: 1;
+            margin-right: 0px;
+            margin-bottom: 0px;
+        }
+
+        #calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background-color: var(--theme-color);
+            color: #fff;
+        }
+
+        #current-week {
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        #calendar {
+            display: grid;
+            grid-template-columns: auto repeat(7, 1fr);
+            gap: 1px;
+            background-color: #e0e0e0;
+        }
+
+        .day-header, .hour {
+            background: #f5f5f5;
+            padding: 10px;
+            text-align: center;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .day {
+            background: #fff;
+            min-height: 60px;
+            position: relative;
+            padding: 2px;
+        }
+
+        .event {
+            padding: 2px 4px;
+            margin: 1px 0;
+            border-radius: 3px;
+            font-size: 12px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .event.work { 
+            background-color: #b91818; 
+            color: white; 
+        }
+
+        .event.social { 
+            background-color: #5f5cec; 
+            color: white; 
+        }
+
+        .event.health { 
+            background-color: #0d7929; 
+            color: white; 
+        }
+
+        .event.leisure { 
+            background-color: #FF6D01; 
+            color: white; 
+        }
+
+        .event.education { 
+            background-color: #46BDC6; 
+            color: white; 
+        }
+
+        .event.other { 
+            background-color: #757575;
+            color: white; 
+        }
+
+
+        /* Shopping list styles */
+        #shopping-list-container {
+            flex: 0 0 300px;
+            margin-right: 10px;
+            margin-bottom: 0px;
+        }
+
+        #shopping-list-header,
+        #calendar-header {
+            position: relative;
+            z-index: 5;
+        }
+
+        #shopping-list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--theme-color);
+            color: #fff;
+            padding: 15px;
+        }
+
+        #shopping-list-container h2 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        #shopping-list-container ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        #shopping-list-container li {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #shopping-list-container li:last-child {
+            border-bottom: none;
+        }
+
+        /* Popup styles */
+        .popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            width: 300px;
+        }
+
+        .popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+
+        .popup h3 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: var(--theme-color);
+        }
+
+        .popup input {
+            display: block;
+            margin: 10px 0;
+            padding: 8px;
+            width: 100%;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .popup-buttons {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .popup button {
+            margin-left: 10px;
+            padding: 8px 16px;
+            background-color: var(--theme-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .popup button.cancel {
+            background-color: #ccc;
+        }
+
+        .popup button:hover {
+            opacity: 0.8;
+        }
+
+        /* State icon styles */
+        #state-icon {
+            display: none;
+            margin-left: 20px;
+        }
+
+        .state-icon-ready .material-symbols-outlined,
+        .state-icon-tts .material-symbols-outlined,
+        .state-icon-finished .material-symbols-outlined {
+            font-size: 90px;
+        }
+
+        .state-icon-loading {
+            border: 16px solid #f3f3f3;
+            border-top: 16px solid var(--theme-color);
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 2s linear infinite;
+            display: block;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .state-icon-recognizing {
+            width: 60px;
+            height: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .state-icon-recognizing
+        {
+            width: 80px;
+            aspect-ratio: 4;
+            background: radial-gradient(circle closest-side,#fff 100%,#0000) 0/calc(80%/3) 100% space;
+            clip-path: inset(0 100% 0 0);
+            animation: l1 2.2s steps(4) infinite;
+            margin-right:10px;
+        }
+        @keyframes l1 {to{clip-path: inset(0 -34% 0 0)}}
+
+        /* Hover styles for deletable items */
+        .event.deletable:hover,
+        #shopping-list-container li.deletable:hover {
+            background-color: #f44336;
+            color: white;
+            cursor: pointer;
+        }
+
+        /* Responsive styles */
+        @media (max-width: 1160px) {
+            #header-container {
+                flex-direction: row;
+                flex: auto;
+            }
+            #button-container {
+                flex: 0 0 200px;
+            }
+            #upcoming-event-container {
+                flex: auto;
+                margin-right: 0px;
+                min-width: 208px;
+            }
+            #time {
+                display: none;
+            }
+            #calendar-container {
+                margin-right: 0px;
+            }
+        }
+
+        @media (max-width: 940px) {
+            #upcoming-event-container {
+                margin-right: 0px;
+            }
+            #shopping-list-container,
+            #calendar-container {
+                flex: 1 1 100%;
+                margin-right: 0px;
+                margin-bottom: 10px;
+            }
+            #calendar {
+                font-size: 12px;
+            }
+            .day-header, .hour {
+                padding: 5px;
+            }
+            .event {
+                font-size: 10px;
+            }
+        }
+
+        @media (max-width: 610px) {
+            #header-container {
+                flex-direction: column;
+            }
+            #button-container {
+                flex: auto;
+                margin-right: 0;
+            }
+            #upcoming-event-container {
+                margin-left: 10px;
+            }
+            #current-week {
+                display: none;
+            }
+        }
+    </style>
+<script>
+    // dialogue_paused = true
+
+    // Globalni promenna pro ukladani data
+    var events = [];
+    var shop = [];
+
+    var message_already_sent_flag = false
+
+    // SIP session, tj. hovor
+    var session;
+
+    // Výchozí URI, odkud se stáhne konfigurace ASR+TTS
+    var SPEECHCLOUD_URI = "https://"+window.location.host.replace("444", "443")+"/v1/speechcloud/";
+    var SPEECHCLOUD_DEFAULT_APP_ID = "numbers";
+
+    // Proměnná pro udržení odkazu na řídící WebSocket
+    var SPEECHCLOUD_WS = null;
+
+    /* Výběr prvků z pole */
+    function choose(choices) {
+        var index = Math.floor(Math.random() * choices.length); return choices[index];
+    }
+
+    /* Logovací funkce */
+    function hlog(text) {
+        $("#log").prepend("<div>"+text+"<br/></div>");
+    }
+
+    $( document ).ready(function() {
+        const themeColors = [
+            '#3f51b5',
+            '#2E7D32',
+            '#6A1B9A',
+            '#1565C0',
+            '#283593',
+            '#4E342E',
+            '#37474F',
+            '#6b0b09',
+            '#000000'
+        ];
+        let currentColorIndex = 0;
+
+        function changeThemeColor() {
+            currentColorIndex = (currentColorIndex + 1) % themeColors.length;
+            const newColor = themeColors[currentColorIndex];
+            
+            document.documentElement.style.setProperty('--theme-color', newColor);
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (event.altKey && event.key === 't') {
+                event.preventDefault();
+                changeThemeColor();
+            }
+        });
+        
+        // Chat
+        function addChatMessage(message, isIncoming) {
+            const chatMessages = document.getElementById('chat-messages');
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('chat-message');
+            messageElement.classList.add(isIncoming ? 'incoming' : 'outgoing');
+            messageElement.textContent = message;
+            
+            const wrapperDiv = document.createElement('div');
+            wrapperDiv.style.width = '100%';
+            wrapperDiv.style.display = 'flex';
+            wrapperDiv.style.justifyContent = isIncoming ? 'flex-start' : 'flex-end';
+            
+            wrapperDiv.appendChild(messageElement);
+            chatMessages.appendChild(wrapperDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        document.getElementById('chat-send-button').addEventListener('click', function() {
+            const input = document.getElementById('chat-text-input');
+            const message = input.value.trim();
+            if (message) {
+                addChatMessage(message, false);
+                message_already_sent_flag = true
+                input.value = '';
+                speechCloud.asr_process_text({text: message});
+            }
+        });
+
+        document.getElementById('chat-text-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('chat-send-button').click();
+            }
+        });
+
+        // Popup windows
+        const POLOZKA = {
+            "pečivo": {},
+            "šunka": {},
+            "sýr": {},
+            "těstoviny": {},
+            "rýže": {},
+            "brambory": {},
+            "kuřecí maso": {},
+            "vepřové maso": {},
+            "hovězí maso": {},
+            "mleté maso": {},
+            "ovesné vločky": {},
+            "cereálie": {},
+            "mléko": {},
+            "vejce": {},
+            "chléb": {},
+            "máslo": {},
+            "olej": {},
+            "jogurt": {},
+            "banán": {},
+            "jablko": {},
+            "hruška": {},
+            "pomeranč": {},
+            "citron": {},
+            "okurka": {},
+            "rajče": {},
+            "paprika": {},
+            "salát": {},
+            "brokolice": {},
+            "květák": {},
+            "cuketa": {},
+            "mrkev": {},
+            "cibule": {},
+            "česnek": {},
+            "chilli": {},
+            "rohlík": {},
+            "sušený salám": {},
+            "slanina": {},
+            "klobása": {},
+            "anglická slanina": {},
+            "smetana": {},
+            "tvaroh": {},
+            "zmrzlina": {},
+            "mouka": {},
+            "cukr": {},
+            "sůl": {},
+            "pepř": {},
+            "kmín": {},
+            "kečup": {},
+            "hořčice": {},
+            "majonéza": {},
+            "ocet": {},
+            "med": {},
+            "džem": {},
+            "povidla": {},
+            "čokoláda": {},
+            "minerálka": {},
+            "limonáda": {},
+            "pivo": {},
+            "víno": {},
+            "rum": {},
+            "whisky": {},
+            "vodka": {},
+            "zelí": {},
+            "špenát": {},
+            "hrách": {},
+            "čočka": {},
+            "fazole": {},
+            "krůtí maso": {},
+            "jehněčí maso": {},
+            "ryba": {},
+            "losos": {},
+            "tuňák": {},
+            "kapr": {},
+            "ořechy": {},
+            "mandle": {},
+            "rozinky": {},
+            "kuskus": {},
+            "bulgur": {},
+            "quinoa": {},
+            "tofu": {},
+            "tempeh": {},
+            "sójové maso": {},
+            "granola": {},
+            "müsli": {},
+            "pudink": {},
+            "želatina": {},
+            "droždí": {},
+            "prášek do pečiva": {},
+            "vanilkový cukr": {},
+            "skořice": {},
+            "zázvor": {},
+            "kurkuma": {},
+            "oregano": {},
+            "bazalka": {},
+            "tymián": {},
+            "rozmarýn": {},
+            "bobkový list": {},
+            "nové koření": {},
+            "hřebíček": {},
+            "kardamom": {}
+        };
+
+        const AKCE = {
+            "schůzka": {},
+            "obecná událost": {},
+            "návštěva doktora": {},
+            "oběd": {},
+            "rezervace": {},
+            "večeře": {},
+            "telefonát": {},
+            "osobní úkol": {},
+            "přednáška": {},
+            "konference": {},
+            "výlet": {},
+            "narozeniny": {},
+            "trénink": {},
+            "zkouška": {},
+            "porada": {},
+            "setkání s přáteli": {},
+            "rodinná událost": {},
+            "mentoring": {}
+        };
+
+        function populateDatalist(datalistId, items) {
+            const datalist = document.getElementById(datalistId);
+            for (const key in items) {
+                const option = document.createElement('option');
+                option.value = key;
+                datalist.appendChild(option);
+            }
+        }
+        
+        let isEventDeleteMode = false;
+        let isShoppingDeleteMode = false;
+
+        document.getElementById('add-event').addEventListener('click', showAddEventPopup);
+        document.getElementById('delete-event').addEventListener('click', toggleEventDeleteMode);
+        document.getElementById('add-item').addEventListener('click', showAddItemPopup);
+        document.getElementById('delete-item').addEventListener('click', toggleShoppingDeleteMode);
+
+        function showPopup(content) {
+            const overlay = document.createElement('div');
+            overlay.className = 'popup-overlay';
+            document.body.appendChild(overlay);
+
+            const popup = document.createElement('div');
+            popup.className = 'popup';
+            popup.innerHTML = content;
+            document.body.appendChild(popup);
+
+            overlay.style.display = 'block';
+            popup.style.display = 'block';
+
+            return { popup, overlay };
+        }
+
+        function closePopup(popup, overlay) {
+            popup.remove();
+            overlay.remove();
+        }
+
+        function showAddEventPopup() {
+            const { popup, overlay } = showPopup(`
+                <h3>Přidat událost</h3>
+                <input type="text" id="event-name" list="event-names" placeholder="Typ" required>
+                <datalist id="event-names">
+                    <!-- Event names will be populated here -->
+                </datalist>
+                <input type="date" id="event-date" required>
+                <input type="time" id="event-start-time" min="06:00" max="20:00" step="1800" required>
+                <input type="time" id="event-end-time" min="06:00" max="20:00" step="1800" required>
+                <div class="popup-buttons">
+                    <button id="add-event-btn">Přidat</button>
+                    <button class="cancel">Zrušit</button>
+                </div>
+            `);
+
+            populateDatalist('event-names', AKCE);
+
+            popup.querySelector('.cancel').addEventListener('click', () => closePopup(popup, overlay));
+            popup.querySelector('#add-event-btn').addEventListener('click', () => {
+                const name = document.getElementById('event-name').value;
+                let startTime = document.getElementById('event-start-time').value;
+                let endTime = document.getElementById('event-end-time').value;
+                const date = document.getElementById('event-date').value;
+
+                if (!name || !date || !startTime || !endTime) {
+                    alert('Prosím vyplňte všechna pole.');
+                    return;
+                }
+                if (!AKCE.hasOwnProperty(name)) {
+                    alert('Prosím vyberte validní typ události.');
+                    return;
+                }
+                if (startTime >= endTime) {
+                    alert('Čas začátku musí být dříve, než čas konce události.');
+                    return;
+                }
+                let [hours, minutes] = startTime.split(':');
+                if (hours < 6 || hours > 20) {
+                    alert('Prosím zadejte validní čas.\nČas musí být v rozmezí 06:00 - 20:00.');
+                    return;
+                }
+                if (minutes != 30 && minutes != 0) {
+                    alert('Prosím zadejte validní čas.\nČas musí být v půlhodinových inkrementech.')
+                    return;
+                }
+                [hours, minutes] = endTime.split(':');
+                if (hours < 6 || hours > 20) {
+                    alert('Prosím zadejte validní čas.\nČas musí být v rozmezí 06:00 - 20:00.');
+                    return;
+                }
+                if (minutes != 30 && minutes != 0) {
+                    alert('Prosím zadejte validní čas.\nČas musí být v půlhodinových inkrementech.')
+                    return;
+                }
+
+                if (startTime.slice(0,1) == '0') {
+                    startTime = startTime.slice(1);
+                }
+
+                if (endTime.slice(0,1) == '0') {
+                    endTime = endTime.slice(1);
+                }
+
+                let [year, month, day] = date.split('-');
+
+                if (month.slice(0,1) == '0') {
+                    month = month.slice(1);
+                }
+
+                if (day.slice(0,1) == '0') {
+                    day = day.slice(1);
+                }
+
+                const newEvent = {
+                    type: name,
+                    date_day: day + '.',
+                    date_month: month + '.',
+                    date_year: year,
+                    time_start: startTime,
+                    time_end: endTime
+                };
+
+                events.push(newEvent);
+                populateEvents(events);
+                syncWithServer();
+                popup.remove();
+                closePopup(popup, overlay);
+            });
+        }
+
+        function showAddItemPopup() {
+            const { popup, overlay } = showPopup(`
+                <h3>Přidat položku</h3>
+                <input type="text" id="item-name" list="item-names" placeholder="Název" required>
+                <datalist id="item-names">
+                    <!-- Item names will be populated here -->
+                </datalist>
+                <input type="number" id="item-quantity" min="1" value="1" required>
+                <div class="popup-buttons">
+                    <button id="add-item-btn">Přidat</button>
+                    <button class="cancel">Zrušit</button>
+                </div>
+            `);
+
+            populateDatalist('item-names', POLOZKA);
+
+            popup.querySelector('.cancel').addEventListener('click', () => closePopup(popup, overlay));
+            popup.querySelector('#add-item-btn').addEventListener('click', () => {
+                const name = document.getElementById('item-name').value;
+                const quantity = parseInt(document.getElementById('item-quantity').value);
+
+                if (!quantity || !name) {
+                    alert('Prosím vyplňte všechna pole.');
+                    return;
+                }
+                if (!POLOZKA.hasOwnProperty(name)) {
+                    alert('Prosím vyberte validní položku.');
+                    return;
+                }
+
+                if (quantity < 1) {
+                    alert('Množství musí být rovno alespoň 1.');
+                    return;
+                }
+
+                const existingItemIndex = shop.findIndex(item => item.name === name);
+
+                if (existingItemIndex !== -1) {
+                    shop[existingItemIndex].amount += quantity;
+                } else {
+                    const newItem = {
+                        name: name,
+                        amount: quantity
+                    };
+                    shop.push(newItem);
+                }
+
+                populateShoppingList(shop);
+                syncWithServer();
+                closePopup(popup, overlay);
+            });
+        }
+
+        // Delete buttons
+        function toggleEventDeleteMode() {
+            isEventDeleteMode = !isEventDeleteMode;
+            const deleteButton = document.getElementById('delete-event');
+            deleteButton.classList.toggle('active', isEventDeleteMode);
+            populateEvents(events);
+        }
+
+        function toggleShoppingDeleteMode() {
+            isShoppingDeleteMode = !isShoppingDeleteMode;
+            const deleteButton = document.getElementById('delete-item');
+            deleteButton.classList.toggle('active', isShoppingDeleteMode);
+            populateShoppingList(shop);
+        }
+
+        function showConfirmationPopup(message, onConfirm) {
+            const { popup, overlay } = showPopup(`
+                <h3>Potvrzení odstranění</h3>
+                <p>${message}</p>
+                <div class="popup-buttons">
+                    <button id="confirm-delete">Odstranit</button>
+                    <button class="cancel">Zrušit</button>
+                </div>
+            `);
+
+            popup.querySelector('.cancel').addEventListener('click', () => closePopup(popup, overlay));
+            popup.querySelector('#confirm-delete').addEventListener('click', () => {
+                onConfirm();
+                closePopup(popup, overlay);
+            });
+        }
+
+        function deleteEvent(index) {
+            showConfirmationPopup('Opravdu si přejete odstranit danou událost?', () => {
+                events.splice(index, 1);
+                populateEvents(events);
+                syncWithServer();
+            });
+        }
+
+        function deleteShoppingItem(index) {
+            showConfirmationPopup('Opravdu si přejete odstranit danou položku?', () => {
+                shop.splice(index, 1);
+                populateShoppingList(shop);
+                syncWithServer();
+            });
+        }
+
+        // Synchronizace se serverem
+        function syncWithServer() {
+            const data = {
+                events: events,
+                shopping_lists: [{
+                    items: shop
+                }]
+            };
+            speechCloud.dm_send_message({data: JSON.stringify(data)});
+        }
+
+        const calendarContainer = document.getElementById('calendar-container');
+        const today = new Date();
+        const defaultDayIndex = today.getDay();
+        const dayIndex = defaultDayIndex === 0 ? 6 : defaultDayIndex-1; // sunday is 0... make it 6 and monday 0 as we are european
+
+        let currentWeekStart = new Date(today.setDate(today.getDate() - dayIndex));
+        
+
+        const daysOfWeek = ['Po', 'Út', 'St', 'Čt', 'Pá', 'So', 'Ne'];
+
+        // Nadchazejici udalost
+        function updateUpcomingEvent() {
+            const now = new Date();
+            let closestEvent = null;
+            let closestEventData = null;
+            console.log('now', now)
+            for (let event of events) {
+                let [hour, minute] = event.time_start.split(':');
+                hour = hour.padStart(2, '0');
+                const formattedTimeStart = `${hour}:${minute}`;
+
+                const eventDate = new Date(
+                    `${event.date_year}-${event.date_month.slice(0, -1).padStart(2, '0')}-${event.date_day.slice(0, -1).padStart(2, '0')}T${formattedTimeStart}`
+                );
+                console.log('upcm', eventDate)
+
+                if (eventDate > now && (!closestEvent || eventDate < closestEvent)) {
+                    closestEvent = eventDate;
+                    console.log(closestEvent)
+                    closestEventData = event;
+                }
+            }
+
+            const upcomingEventDetails = document.getElementById('upcoming-event-details');
+
+            if (closestEventData) {
+                upcomingEventDetails.innerHTML = `
+                    <p><strong>Typ:</strong> ${closestEventData.type}</p>
+                    <p><strong>Datum:</strong> ${closestEventData.date_day.slice(0, -1)}.${closestEventData.date_month.slice(0, -1)}.${closestEventData.date_year}</p>
+                    <p><strong>Čas:</strong> ${closestEventData.time_start} - ${closestEventData.time_end}</p>
+                `;
+            } else {
+                upcomingEventDetails.innerHTML = '<p>Žádné nadcházející události</p>';
+            }
+        }
+
+        // Indikator casu v kalendari
+        function updateCurrentTimeIndicator() {
+            const now = new Date();
+            const currentHour = now.getHours();
+            const currentMinute = now.getMinutes();
+            const dateString = now.toISOString().split('T')[0]; // format as YYYY-MM-DD
+
+            if (currentHour >= 6 && currentHour < 20) {
+                const dayCell = document.querySelector(`.day[data-date="${dateString}"][data-hour="${currentHour}"]`);
+
+                if (dayCell) {
+                    const existingIndicator = document.querySelector('.current-time-indicator');
+                    if (existingIndicator) {
+                        existingIndicator.remove();
+                    }
+
+                    const indicator = document.createElement('div');
+                    indicator.className = 'current-time-indicator';
+                    const topPercentage = (currentMinute / 60) * 100;
+                    indicator.style.cssText = `
+                        position: absolute;
+                        left: 0;
+                        right: 0;
+                        top: ${topPercentage}%;
+                        height: 2px;
+                        background-color: black;
+                        z-index: 10;
+                    `;
+                    dayCell.appendChild(indicator);
+                }
+            }
+        }
+        
+        // Generace kalendare
+        function generateCalendar(weekStart) {
+            let calendar = '<div class="hour"></div>'; 
+
+            // Add day headers
+            for (let day = 0; day < 7; day++) {
+                const currentDate = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + day);
+                calendar += `<div class="day-header">${daysOfWeek[day]}<br>${currentDate.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric' })}</div>`;
+            }
+
+            // Add hourly rows
+            for (let hour = 6; hour < 20; hour++) {
+                calendar += `<div class="hour">${hour.toString().padStart(2, '0')}:00</div>`;
+                for (let day = 0; day < 7; day++) {
+                    const currentDate = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + day + 1);
+                    const dateString = currentDate.toISOString().split('T')[0]; 
+                    calendar += `<div class="day" data-date="${dateString}" data-hour="${hour}"></div>`;
+                }
+            }
+
+            document.getElementById('calendar').innerHTML = calendar;
+            updateCurrentWeekDisplay(weekStart);
+            
+            document.querySelectorAll('.event').forEach(el => el.remove());
+            
+            populateEvents(events);
+
+            updateUpcomingEvent();
+            updateCurrentTimeIndicator();
+        }
+
+        // Navigace v tydnech v kalendari
+        function updateCurrentWeekDisplay(weekStart) {
+            const weekEnd = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + 6);
+            const formatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+            const weekStartStr = weekStart.toLocaleDateString('cs-CZ', formatOptions);
+            const weekEndStr = weekEnd.toLocaleDateString('cs-CZ', formatOptions);
+            document.getElementById('current-week').textContent = `${weekStartStr} - ${weekEndStr}`;
+        }
+
+        setInterval(updateUpcomingEvent, 60000);
+        setInterval(updateCurrentTimeIndicator, 60000); 
+
+        function populateEvents(events) {
+            document.querySelectorAll('.event').forEach(el => el.remove());
+
+            events.forEach((event, index) => {
+                const eventDate = new Date(`${event.date_year}-${event.date_month.slice(0, -1).padStart(2, '0')}-${event.date_day.slice(0, -1).padStart(2, '0')}`);
+                const eventStartHour = parseInt(event.time_start.split(':')[0], 10);
+                console.log('minuty', parseInt(event.time_end.split(':')[1], 10));
+                let eventEndHour;
+                if (parseInt(event.time_end.split(':')[1], 10) == 30){
+                    eventEndHour = parseInt(event.time_end.split(':')[0], 10) + 1;
+                }
+                else{
+                    eventEndHour = parseInt(event.time_end.split(':')[0], 10);
+                };
+                
+                const dateString = eventDate.toISOString().split('T')[0]; 
+                const eventCategory = categorizeEvent(event.type);
+
+                for (let hour = eventStartHour; hour < eventEndHour; hour++) {
+                    const cell = document.querySelector(`.day[data-date="${dateString}"][data-hour="${hour}"]`);
+                    if (cell) {
+                        const eventElement = document.createElement('div');
+                        eventElement.className = `event ${eventCategory}`;
+                        eventElement.title = `${event.type} (${event.time_start} - ${event.time_end})`;
+                        eventElement.textContent = event.type;
+
+                        if (isEventDeleteMode) {
+                            eventElement.classList.add('deletable');
+                            eventElement.onclick = (e) => {
+                                e.stopPropagation();
+                                deleteEvent(index);
+                            };
+                        }
+
+                        cell.appendChild(eventElement);
+                    }
+                }
+            });
+
+            updateUpcomingEvent();
+            updateCurrentTimeIndicator();
+        }
+
+        // Nacteni udalosti do kalendare
+        function populateShoppingList(shop) {
+            const listContainer = document.getElementById('shopping-list-container').querySelector('ul');
+            listContainer.innerHTML = ''; // Clear previous list
+
+            shop.forEach((item, index) => {
+                const li = document.createElement('li');
+                li.textContent = `${item.amount}x ${item.name}`;
+                
+                if (isShoppingDeleteMode) {
+                    li.classList.add('deletable');
+                    li.onclick = () => deleteShoppingItem(index);
+                }
+                
+                listContainer.appendChild(li);
+            });
+        }
+
+        generateCalendar(currentWeekStart);
+        populateShoppingList(shop);
+
+        document.querySelector('#calendar-container .prev').addEventListener('click', function() {
+            currentWeekStart.setDate(currentWeekStart.getDate() - 7);
+            generateCalendar(new Date(currentWeekStart));
+        });
+
+        document.querySelector('#calendar-container .next').addEventListener('click', function() {
+            currentWeekStart.setDate(currentWeekStart.getDate() + 7);
+            generateCalendar(new Date(currentWeekStart));
+        });
+
+        function categorizeEvent(eventType) {
+            const categories = {
+                work: ['schůzka', 'telefonát', 'osobní úkol', 'porada', 'mentoring'],
+                social: ['setkání s přáteli', 'rodinná událost', 'narozeniny', 'večeře', 'oběd'],
+                health: ['návštěva doktora', 'trénink'],
+                leisure: ['výlet', 'rezervace'],
+                education: ['přednáška', 'konference', 'zkouška'],
+            };
+
+            for (const [category, events] of Object.entries(categories)) {
+                if (events.includes(eventType)) {
+                    return category;
+                }
+            }
+
+            return 'other';
+        }
+
+        function formatTime(date) {
+            let hours = date.getHours();
+            let minutes = date.getMinutes();
+            let seconds = date.getSeconds();
+            
+            hours = hours < 10 ? '0' + hours : hours;
+            minutes = minutes < 10 ? '0' + minutes : minutes;
+            seconds = seconds < 10 ? '0' + seconds : seconds;
+            
+            return `${hours}:${minutes}:${seconds}`;
+        }
+
+        function updateTime() {
+            const timeElement = document.getElementById('time');
+            const now = new Date();
+            timeElement.textContent = formatTime(now);
+        }
+
+        setInterval(updateTime, 500);
+
+        updateTime();
+
+
+        // Speechcloud API
+        $("#chat-text-input").focus(function () {
+            console.log("ignore_space = true");
+            ignore_space = true;
+        });
+
+        $("#chat-text-input").focusout(function () {
+            console.log("ignore_space = false");
+            ignore_space = false;
+        });
+
+        /* Obsluha tlačítka barge-in*/
+        $("#tts_stop").click(do_tts_stop);
+
+        $("#slu_set_nbest_2").click(function () {
+            speechCloud.slu_set_nbest({nbest: 2});
+        });
+
+        $("#slu_set_nbest_10").click(function () {
+            speechCloud.slu_set_nbest({nbest: 10});
+        });
+        
+        $("#slu_test").click(function () {
+            speechCloud.slu_set_grammars(
+                {"grammars": [
+                    {"entity":"ALT", "type":"abnf", "data":"http://itblp.zcu.cz/app-demo/atg1/static/grms/ALT.abnf"},
+                    {"entity":"CMD", "type":"abnf", "data":"http://itblp.zcu.cz/app-demo/atg1/static/grms/CMD.abnf"},
+                    {"entity":"CS","type":"abnf","data":"http://itblp.zcu.cz/app-demo/atg1/static/grms/CS.abnf"},
+                    {"entity":"FL","type":"abnf","data":"http://itblp.zcu.cz/app-demo/atg1/static/grms/FL.abnf"},
+                    {"entity":"FR","type":"abnf","data":"http://itblp.zcu.cz/app-demo/atg1/static/grms/FR.abnf"},
+                    {"entity":"HE","type":"abnf","data":"http://itblp.zcu.cz/app-demo/atg1/static/grms/HE.abnf"},
+                    {"entity":"PO","type":"abnf","data":"http://itblp.zcu.cz/app-demo/atg1/static/grms/PO.abnf"},
+                    {"entity":"QNH","type":"abnf","data":"http://itblp.zcu.cz/app-demo/atg1/static/grms/QNH.abnf"},
+                    {"entity":"RA","type":"abnf","data":"http://itblp.zcu.cz/app-demo/atg1/static/grms/RA.abnf"},
+                    {"entity":"SP","type":"abnf","data":"http://itblp.zcu.cz/app-demo/atg1/static/grms/SP.abnf"},
+                    {"entity":"SQ","type":"abnf","data":"http://itblp.zcu.cz/app-demo/atg1/static/grms/SQ.abnf"},
+                    {"entity":"TU","type":"abnf","data":"http://itblp.zcu.cz/app-demo/atg1/static/grms/TU.abnf"},
+                    {"entity":"TWR","type":"abnf","data":"http://itblp.zcu.cz/app-demo/atg1/static/grms/TWR.abnf"}
+                ]});
+        });
+
+        $("#grm_test").click(function () {
+            speechCloud.itblp_gen_grammar({"se_type": "CS", "values": ["MTL572", "CSA024", "OKRHH", "AUA123"]});
+        });
+
+        $("#asr_set_grammar").click(function () {
+            var grammar = "#ESGF V1.0;\n" +
+    "grammar prikaz;\n" +
+    "public <prikaz>=(zatoč <smer>|jeď <kam>|<vypln>)*;\n" +
+    "<smer>=(doleva|doprava);\n" +
+    "<kam>=(rovně|dopředu|dozadu);\n" +
+    "<vypln>=(a|potom);\n";
+            speechCloud.asr_set_grammar({"grammar_type": "esgf", "grammar": grammar});
+        });
+
+
+        // $("#asr_test").click(function () {
+        //     speechCloud.asr_test({"words": ["Air_Prague", "Prague_Air"]});
+        // });
+
+        $("#process_text").click(function () {
+            text = $("#process_text_input").val();
+            speechCloud.asr_process_text({text: text});
+            $("#process_text_input").val("")
+        });
+
+        $("#send_message").click(function () {
+            data = JSON.parse($("#send_message_input").val());
+            speechCloud.dm_send_message({data: data});
+            $("#send_message_input").val("")
+        });
+
+        $("#tts_text").click(function () {
+            text = $("#process_text_input").val();
+            do_tts(text);
+            $("#process_text_input").val("")
+        });
+
+
+        var ignore_space = false;
+
+        $("#process_text_input").focus(function () {
+            console.log("ignore_space = true");
+            ignore_space = true;
+        });
+
+        $("#process_text_input").focusout(function () {
+            console.log("ignore_space = false");
+            ignore_space = false;
+        });
+
+        $("#send_message_input").focus(function () {
+            console.log("ignore_space = true");
+            ignore_space = true;
+        });
+
+        $("send_message_input").focusout(function () {
+            console.log("ignore_space = false");
+            ignore_space = false;
+        });
+
+
+
+        /* Stavová proměnná a funkce pro spuštění/pozastavení rozpoznávání */
+        var recognizing = false;
+
+        function do_recognize() {
+            if (!recognizing) {
+                speechCloud.asr_recognize();
+            };
+        }
+
+        function do_pause() {
+            if (recognizing) {
+                speechCloud.asr_pause();
+            }
+        }
+
+        /* Přerušení syntézy zasláním zprávy tts_stop */
+        function do_tts_stop() {
+            console.log("Sending tts_stop");
+            speechCloud.tts_stop();
+        }
+
+        /* Syntéza řeči */
+        function do_tts(text, voice) {
+            speechCloud.tts_synthesize({
+                text: text,
+                voice: voice
+            });
+        }
+
+        /* Obsluha tlačítka Restart dialog */
+        $("#dialog-restart").click(function () {
+            // TODO: nechci restart, chci jen start dialogu. je to mozne?
+            location.reload(true);
+        });
+
+        /* Obsluha tlačítka pause dialog */
+        // $("#dialog-pause").click(function () {
+        //     if (dialogue_paused){
+        //         const pauseIcon = document.getElementById('dialog-pause');
+        //         pauseIcon.innerHTML = `
+        //             <span class="material-symbols-outlined">
+        //                 mic
+        //             </span>`;
+        //         dialogue_paused = false;
+        //         speechCloud.dm_send_message({data: 'app'});
+        //         console.log('spoustim dialog')
+        //         const stateIcon = document.getElementById('state-icon');
+        //         stateIcon.className = 'state-icon-recognizing';
+        //         stateIcon.innerHTML = '';
+        //         stateIcon.style.display = "block";
+        //     }
+        //     else {
+        //         dialogue_paused = true;
+        //         const pauseIcon = document.getElementById('dialog-pause');
+        //         pauseIcon.innerHTML = `
+        //             <span class="material-symbols-outlined">
+        //                 mic_off
+        //             </span>`;
+        //         const stateIcon = document.getElementById('state-icon');
+        //         stateIcon.className = 'state-icon-finished'; // Remove the loading class
+        //         stateIcon.style.display = 'block'; // Ensure it's displayed
+        //         stateIcon.innerHTML = `
+        //             <span class="material-symbols-outlined">
+        //                 pause
+        //             </span>`;
+        //         speechCloud.dm_send_message({data: 'app'});
+        //         console.log('pauzuju dialog')
+        //     };
+        // });
+
+        /* Obsluha tlačítka Stop dialog*/
+        $("#dialog-stop").click(function () {
+            hlog("<b>Terminating dialog</b>");
+            speechCloud.terminate();
+        });
+
+        /* Obsluha tlačítka Recognition start/stop */
+        $("#recog").click(function () {
+            if (recognizing) {
+                do_pause();
+            } else {
+                do_recognize();
+            };
+        });
+
+
+        /* Po stisk mezerníku je totéž jako stisknutí tlačítka #recog */
+        $(window).keydown(function(evt) {
+            if (ignore_space) return;
+
+            if (evt.keyCode == 32) {
+                evt.preventDefault();
+            };
+        });
+
+        $(window).keyup(function(evt) {
+            if (ignore_space) return;
+
+            if (evt.keyCode == 32) {
+                setTimeout(function () {$("#recog").click()}, 100);
+                evt.preventDefault();
+            };
+        });
+
+
+        $("#file-input").change(function (e) {
+            var file = e.target.files[0];
+            if (!file) {
+                return;
+            }
+
+            speechCloud.asr_offline_start();
+
+            var reader = new FileReader();
+
+            CHUNK_SIZE = 100*1024;
+            start = 0;
+
+            // Closure to capture the file information.
+            reader.onloadend = function(evt) {
+                if (evt.target.readyState == FileReader.DONE) {
+                    var result = evt.target.result;
+                    n_bytes = result.length;
+                    hlog("<b>Sending "+n_bytes+" bytes from "+file.name+"</b>");
+                    speechCloud.asr_offline_push_data({data: result});
+
+                    load_next()
+                }
+            }
+
+            function load_next() {
+                if (start < file.size) {
+                    var blob = file.slice(start, start+CHUNK_SIZE);
+                    reader.readAsBinaryString(blob);
+                    start += CHUNK_SIZE;
+                } else {
+                    speechCloud.asr_offline_stop();
+                };
+            };
+
+            load_next()
+        });
+
+
+        /* Proměnná, do které se uloží timeout pro SIP zavolání */
+        var call_timeout = null;
+
+        /* Model URI je SPEECHCLOUD_URI a parametr z location.search */
+        var model_uri = "https://prod.speechcloud.kky.zcu.cz:9443/v1/speechcloud/edu-brabenec"
+
+        var options = {
+            uri: model_uri,
+            tts: "#audioout",
+            disable_audio_processing: true
+        }
+
+        var speechCloud = new SpeechCloud(options);
+
+        window.speechCloud = speechCloud
+
+        // prichozi zprava z dm
+        speechCloud.on('dm_receive_message', function (msg) {
+            console.log('msg: ')
+            console.log(msg)
+            // if (msg.data.message == "app"){
+            //     const stateIcon = document.getElementById('state-icon');
+            //     stateIcon.className = 'state-icon-finished'; // Remove the loading class
+            //     stateIcon.style.display = 'block'; // Ensure it's displayed
+            //     stateIcon.innerHTML = `
+            //         <span class="material-symbols-outlined">
+            //             pause
+            //         </span>`;
+            //     dialogue_paused = true
+            //     const pauseIcon = document.getElementById('dialog-pause');
+            //     pauseIcon.innerHTML = `
+            //         <span class="material-symbols-outlined">
+            //             mic_off
+            //         </span>`;
+            // }
+            if (msg.data.data.shopping_lists) {
+                shop = msg.data.data.shopping_lists[0].items; 
+                events = msg.data.data.events;  
+                console.log("events received: ");
+                console.log(events);
+                console.log("shopping lists received: ");
+                console.log(shop);
+
+                populateEvents(events);
+                populateShoppingList(shop);
+            }
+            else if (msg.data.data) {
+                let dialogue_sentence = msg.data.data;
+                console.log('asistent rekl: ');
+                console.log(dialogue_sentence);
+                addChatMessage(dialogue_sentence, true);
+            }
+            
+        });
+
+        speechCloud.on('error_init', function (data) {
+            console.error('error.init event handler', data.status, data.text);
+        });
+
+        speechCloud.on('error_ws_initialized', function () {
+            hlog('[WS] - ERROR: WS already initialized.');
+        });
+
+        speechCloud.on('_ws_connected', function () {
+            hlog('[WS] - connected');
+        });
+
+        speechCloud.on('_ws_close', function () {
+            hlog('[WS] - closed');
+        });
+
+        speechCloud.on('_ws_session', function (data) {
+            hlog('[WS] - session started id=' + data.id);
+        });
+
+        speechCloud.on('_sip_closed', function (data) {
+            hlog('[SIP] - closed');
+            // if (!dialogue_paused){
+                const stateIcon = document.getElementById('state-icon');
+                stateIcon.className = 'state-icon-finished'; // Remove the loading class
+                stateIcon.style.display = 'block'; // Ensure it's displayed
+                stateIcon.innerHTML = `
+                    <span class="material-symbols-outlined">
+                        done_all
+                    </span>`;
+            // }
+        });
+
+        speechCloud.on('_sip_initializing', function (data) {
+            hlog('[SIP] - client id=' + data);
+            const stateIcon = document.getElementById('state-icon');
+            stateIcon.className = 'state-icon-loading';
+            stateIcon.innerHTML = '';
+            stateIcon.style.display = "block";
+        });
+
+        speechCloud.on('_sip_registered', function () {
+            hlog('[SIP] - registered');
+        }); 
+
+        speechCloud.on('asr_recognizing', function () {
+            recognizing = true;
+            hlog("<i><small>ASR start</small></i>")
+            // if (!dialogue_paused){
+                const stateIcon = document.getElementById('state-icon');
+                stateIcon.className = 'state-icon-recognizing';
+                stateIcon.innerHTML = '';
+                stateIcon.style.display = "block";
+            // }
+        });
+
+        speechCloud.on('asr_paused', function () {
+                recognizing = false;
+                hlog("<i><small>ASR stop</small></i>")
+        });
+
+        /* Při příchodu asr_ready (ASR připraveno) */
+        speechCloud.on('asr_ready', function () {
+            hlog("<b>ASR ready</b>");
+            const stateIcon = document.getElementById('state-icon');
+            stateIcon.className = 'state-icon-ready'; 
+            stateIcon.style.display = 'block'; 
+            stateIcon.innerHTML = `
+                <span class="material-symbols-outlined">
+                    person_check
+                </span>`;
+            // if (dialogue_paused){
+            //     stateIcon.className = 'state-icon-ready'; 
+            //     stateIcon.style.display = 'block'; 
+            //     stateIcon.innerHTML = `
+            //         <span class="material-symbols-outlined">
+            //             pause
+            //         </span>`;
+            // }
+        });
+
+        /* Při příchodu požadavku na zobrazení z dialog manageru*/
+        speechCloud.on('dm_display', function (msg) {
+            hlog("<b>DISPLAY: "+msg.text+"</b>");
+            console.log("dm_display", msg);
+
+        });
+
+        /* Při příchodu ASR výsledku */
+        speechCloud.on('asr_result', function (msg) {
+            if (msg.partial_result) {
+                return;
+            }
+            hlog(msg.result);
+            console.log("Result", msg);
+            
+            let result = msg.result;
+
+            if ((result != '' && !message_already_sent_flag && result) /*&& !dialogue_paused*/){
+                result = result.split('_').join(' ');
+                console.log('Result', result);
+                addChatMessage(result, false);
+            }
+
+            message_already_sent_flag = false
+            /* zastavíme TTS */
+            // do_tts_stop();
+
+            // tts_result = msg.result.replace(/\[[^ ]+\]/g, ' ');
+
+            // /* sesyntetizujeme odpověď */
+            // engine = 'BDL';
+            // ssml = "<?xml version='1.0' encoding='UTF-8'?>\n<speak version='1.0'> \n \n  <noise name='plane_jet3' type='continuous' subtype='plane' fVolume='1.00'/> \n  <noise name='radioswitch1' type='instant' subtype='switch' fVolume='0.5' /> \n  \n <noise name='signal_drop' type='random' subtype='drop' start='0' end='-1' iDropMinLen='100' iDropMaxLen='200' fVolMin='0.20' fVolMax='0.50' iWaitMin='2000' iWaitMax='7000'/> \n  <noise name='radioswitch1' type='instant' subtype='switch' fVolume='0.5'/> \n \n  <voice engine='"+engine+"'> \n    <prosody rate='+40%' pitch='-0%' fVolume='+40%'> \n      <s>"+tts_result+"</s> \n    </prosody> \n  </voice> \n</speak>";
+            // do_tts(ssml);
+        });
+
+        /* Při skončení TTS */
+        speechCloud.on('tts_done', function () {
+            hlog("<i>TTS finished</i>");
+        });
+
+        /* Při příchodu sémantických entit ze SLU */
+        speechCloud.on('slu_nbest', function (msg) {
+            html = "<table><tr><th>n</th><th>prob</th><th>hyp</th></tr>";
+            $(msg.nbest).each(function(index, hyp) {
+                prob = hyp.prob.toFixed(3);
+                html += "<tr><td>"+(index+1)+"</td><td>"+prob+"</td><td>"+hyp.hyp+"</td></tr>";
+            });
+            html += "</table>";
+            hlog(html);
+            console.log(msg.nbest);
+        });
+
+        /* Při příchodu sémantických entit ze SLU */
+        speechCloud.on('slu_entities', function (msg) {
+            html = "<table><tr><th>n</th><th>prob</th><th>entities</th></tr>";
+            $(msg.entities).each(function(index, hyp) {
+                prob = hyp.prob.toFixed(3);
+                str = hyp.values.join(', ');
+                html += "<tr><td>"+(index+1)+"</td><td>"+prob+"</td><td>"+str+"</td></tr>";
+            });
+            html += "</table>";
+            hlog(html);
+            console.log("slu_entities: ", msg);
+            console
+
+            console.log('slu_entities_len', msg.entities[0].values.length)
+            if (msg.entities[0].values.length != 0 /*&& !dialogue_paused*/){
+                const stateIcon = document.getElementById('state-icon');
+                stateIcon.className = 'state-icon-tts'; // Remove the loading class
+                stateIcon.style.display = 'block'; // Ensure it's displayed
+                stateIcon.innerHTML = `
+                    <span class="material-symbols-outlined">
+                        person
+                    </span>`;
+            }
+        })
+
+        speechCloud.on('asr_audio_record', function (msg) {
+            hlog("<b>ASR audio</b> <a href='"+ msg.uri +"' target='_blank'>" + msg.id + "</a>, tstamp="+msg.tstamp);
+        });
+
+        speechCloud.on('sc_start_session', function (msg) {
+            hlog("<b>Session started</b> <a href='"+ msg.session_uri +"?format=yaml.html' target='_blank'>" + msg.session_id + "</a>");
+            hlog("<b>JSON schema URI</b> <a href='"+ msg.schema_uri +"?format=docson' target='_blank'>" + msg.schema_uri + "</a>");
+            hlog("<b>SpeechCloud model URI</b> <a href='"+ model_uri +"' target='_blank'>" + model_uri + "</a>");
+
+            console.log(msg.schema);
+
+            hlog('[LIB] - Methods: ' + this.availableMethods().join(', '));
+            hlog('[LIB] - Events: ' + this.availableEvents().join(', '));
+        });
+
+        speechCloud.on('sc_error', function (msg) {
+            hlog("<b>Error</b> in method <b>"+msg.method_name+"</b> <br>" + msg.error);
+            console.log(msg);
+        });
+
+        speechCloud.on('itblp_gen_grammar_result', function (msg) {
+            hlog("<b>Generated grammar of type </b> " + msg.se_type + "<pre>"+msg.grammar+"</pre>");
+
+            speechCloud.slu_set_grammars(
+                {"grammars": [
+                    {"entity":"ALT", "type":"abnf", "data":"http://itblp.zcu.cz/app-demo/atg1/static/grms/ALT.abnf"},
+                    {"entity":"CMD", "type":"abnf", "data":"http://itblp.zcu.cz/app-demo/atg1/static/grms/CMD.abnf"},
+                    {"entity":"CS","type":"abnf-inline","data":msg.grammar},
+                    {"entity":"FL","type":"abnf","data":"http://itblp.zcu.cz/app-demo/atg1/static/grms/FL.abnf"},
+                    {"entity":"FR","type":"abnf","data":"http://itblp.zcu.cz/app-demo/atg1/static/grms/FR.abnf"},
+                    {"entity":"HE","type":"abnf","data":"http://itblp.zcu.cz/app-demo/atg1/static/grms/HE.abnf"},
+                    {"entity":"PO","type":"abnf","data":"http://itblp.zcu.cz/app-demo/atg1/static/grms/PO.abnf"},
+                    {"entity":"QNH","type":"abnf","data":"http://itblp.zcu.cz/app-demo/atg1/static/grms/QNH.abnf"},
+                    {"entity":"RA","type":"abnf","data":"http://itblp.zcu.cz/app-demo/atg1/static/grms/RA.abnf"},
+                    {"entity":"SP","type":"abnf","data":"http://itblp.zcu.cz/app-demo/atg1/static/grms/SP.abnf"},
+                    {"entity":"SQ","type":"abnf","data":"http://itblp.zcu.cz/app-demo/atg1/static/grms/SQ.abnf"},
+                    {"entity":"TU","type":"abnf","data":"http://itblp.zcu.cz/app-demo/atg1/static/grms/TU.abnf"},
+                    {"entity":"TWR","type":"abnf","data":"http://itblp.zcu.cz/app-demo/atg1/static/grms/TWR.abnf"}
+                ]});
+        });
+
+        speechCloud.on("asr_offline_started", function (msg) {
+            hlog("<i><small>ASR start / offline</small></i>")
+        });
+
+        speechCloud.on("asr_offline_finished", function (msg) {
+            hlog("<i><small>ASR stop / offline</small></i>")
+        });
+
+        speechCloud.on("asr_offline_error", function (msg) {
+            hlog("<i><small>ASR error / offline</small></i>")
+        });
+
+
+
+        speechCloud.init();
+
+});
+
+
+
+
+
+</script> 
+
+</body>
+</html>
